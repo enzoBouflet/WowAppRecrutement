@@ -16,7 +16,7 @@ Joueurs en attente d'être évalué.
 st.table(client.query("""
    SELECT  *
    FROM `bddrecrutement.Joueur.Joueur`
-   LIMIT 5""").result().to_dataframe())
+    """).result().to_dataframe())
 
 
 
