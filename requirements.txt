@@ -11,3 +11,6 @@ google-resumable-media==2.4.0
 google-trans-new==1.1.9
 googleapis-common-protos==1.56.4
 streamlit==1.11.1
+pandas==1.4.4
+pandas-gbq==0.17.9
+pandas-profiling==3.3.0
