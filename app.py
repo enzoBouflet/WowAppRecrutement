@@ -50,7 +50,9 @@ with st.form("Add a Player"):
             client.query(query)
         else:
             st.write("❗Veuillez renseigner le nom du joueur❗")
-
+"""
+Modifier la section Commentaire ou supprimer un joueur
+"""
 with st.form("Changement sur le joueur"):
     nom = st.text_input("Veuillez rentrer le nom exact du joueur")
     motivation = st.text_input("avis sur le joueur")
