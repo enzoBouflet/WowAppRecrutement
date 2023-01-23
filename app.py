@@ -3,6 +3,14 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import requests
 import datetime
+import pandas as pd
+
+def checkDouble(data : pd.DataFrame , nom_new_player):
+    for i in data["Nom"]:
+        if i == nom_new_player:
+            return False
+    return True
+
 
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
@@ -11,14 +19,15 @@ project_id = 'bddrecrutement'
 
 client = bigquery.Client(credentials= credentials,project=project_id)
 
+data = client.query("""
+   SELECT  *
+   FROM `bddrecrutement.Joueur.Joueur`
+    """).result().to_dataframe()
 
 '''
 Joueurs en attente d'être évalué.
 '''
-st.table(client.query("""
-   SELECT  *
-   FROM `bddrecrutement.Joueur.Joueur`
-    """).result().to_dataframe())
+st.table(data)
 
 
 
@@ -32,7 +41,7 @@ with st.form("Add a Player"):
     # Every form must have a submit button.
     submitted = st.form_submit_button("Submit")
     if submitted:
-        if nom:
+        if nom and checkDouble(data , nom):
             nom=nom.lower()
             #requete a l'API de WoW pour collecter de la data sur le joueur
             xp = requests.get(f'''https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}/mythic-keystone-profile?namespace=profile-eu&locale=fr_FR&access_token={st.secrets["API"]}''').json()["current_mythic_rating"]["rating"]
@@ -49,12 +58,14 @@ with st.form("Add a Player"):
                     VALUES ('{nom}', '{classe[0]} : {classe[1]}','Cote mythique : {xp} , XP Raid : {str_xp_raid}','{motivation}','{date}',"None")'''
             client.query(query)
         else:
-            st.write("❗Veuillez renseigner le nom du joueur❗")
+            st.write("❗Veuillez renseigner le nom du joueur ou le joueur rentré est un doublon❗")
 """
 Modifier la section Commentaire ou supprimer un joueur
 """
 with st.form("Changement sur le joueur"):
-    nom = st.text_input("Veuillez rentrer le nom exact du joueur")
+    nom = st.selectbox(
+    "Selectionner le joueur",
+    (data["Nom"]))
     motivation = st.text_input("avis sur le joueur")
     boutton_supprimer = st.checkbox("désirez vous supprimer le joueur du processus de recrutement / le supprimer de la base de donné après le recrutement")
         # Every form must have a submit button.
