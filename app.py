@@ -5,12 +5,18 @@ import requests
 import datetime
 import pandas as pd
 
+def create_access_token(client_id, client_secret, region = 'eu'):
+    data = { 'grant_type': 'client_credentials' }
+    response = requests.post('https://%s.battle.net/oauth/token' % region, data=data, auth=(client_id, client_secret))
+    return response.json()["access_token"]
+
 def checkDouble(data : pd.DataFrame , nom_new_player):
     for i in data["Nom"]:
         if i == nom_new_player:
             return False
     return True
 
+TOKEN = create_access_token(st.secrets["CLIENT_ID"],st.secrets["SECRET"])
 
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
@@ -44,9 +50,9 @@ with st.form("Add a Player"):
         if nom and checkDouble(data , nom):
             nom=nom.lower()
             #requete a l'API de WoW pour collecter de la data sur le joueur
-            xp = requests.get(f'''https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}/mythic-keystone-profile?namespace=profile-eu&locale=fr_FR&access_token={st.secrets["API"]}''').json()["current_mythic_rating"]["rating"]
-            classe = requests.get(f'''https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}?namespace=profile-eu&locale=fr_FR&access_token={st.secrets["API"]}''').json()
-            xp_raid = requests.get(f'https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}/encounters/raids?namespace=profile-eu&locale=fr_FR&access_token={st.secrets["API"]}').json()
+            xp = requests.get(f'''https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}/mythic-keystone-profile?namespace=profile-eu&locale=fr_FR&access_token={TOKEN}''').json()["current_mythic_rating"]["rating"]
+            classe = requests.get(f'''https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}?namespace=profile-eu&locale=fr_FR&access_token={TOKEN}''').json()
+            xp_raid = requests.get(f'https://eu.api.blizzard.com/profile/wow/character/hyjal/{nom}/encounters/raids?namespace=profile-eu&locale=fr_FR&access_token={TOKEN}').json()
             xp_raid = xp_raid["expansions"][-1]["instances"][-1]["modes"]
             classe = [classe["character_class"]["name"],classe["active_spec"]["name"]]
             str_xp_raid = ""
